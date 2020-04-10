@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimized Options Portfolio</title>
+    {% load static %}
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'portfolio_app/img/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'portfolio_app/img/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'portfolio_app/img/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'portfolio_app/img/site.webmanifest' %}">
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/flatly/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'portfolio_app/css/style.css' %}">
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/cyborg/bootstrap.min.css" rel="stylesheet" integrity="sha384-mtS696VnV9qeIoC8w/PrPoRzJ5gwydRVn0oQ9b+RJOPxE1Z1jXuuJcyeNxvNZhdx" crossorigin="anonymous"> -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  
+</head>
+<body>
+    <div class="container-fluid">
+        <div id="header">
+                <div class=" pull-right ">
+                        <form name="logout" id="logout" action="/logout">
+                            <input type="submit" class="btn btn-secondary" id="logout-button" form="logout" value="Logout">
+                        </form>
+                    </div>
+            <img src="{% static 'portfolio_app/img/OOP-logo.png' %}">
+            <h1 class="display-5">Optimized Options Portfolio</h1>
+        </div>
+        <div id="nav-bar">
+                <div class="main-nav">
+                <a href="/portfolio/main">Main Page</a>
+                <a href="/portfolio/options">Update Portfolio</a>
+                <a href="/portfolio/instructions">Trade Summary</a>
+                <a href="/portfolio/analysis">Options Analysis</a>
+                 </div> 
+                
+        </div>
+    
+            
+        <div class="main">
+        <div class="row">
+                <div id="graph">
+                        <!-- load the d3.js library -->    
+                        <script src="https://d3js.org/d3.v3.min.js"></script>
+                        <script>
+                        // Set the dimensions of the canvas / graph
+                        var margin = {top: 30, right: 20, bottom: 50, left: 70},
+                            width = 700 - margin.left - margin.right,
+                            height = 300 - margin.top - margin.bottom;
+                        // Parse the date / time
+                        // var parseDate = d3.time.format("%d-%b-%y").parse;
+                        var parseDate = d3.time.format("%y-%m-%d").parse;
+                        // Set the ranges
+                        var x = d3.time.scale().range([0, width]);
+                        var y = d3.scale.linear().range([height, 0]);
+                        // Define the axes
+                        var xAxis = d3.svg.axis().scale(x)
+                            .orient("bottom").ticks(5);
+                        var yAxis = d3.svg.axis().scale(y)
+                            .orient("left").ticks(5);
+                        // Define the line
+                        var valueline = d3.svg.line()
+                            .x(function(d) { return x(d.date); })
+                            .y(function(d) { return y(d.close); });
+                        // Adds the svg canvas
+                        var svg = d3.select("#graph")
+                            .append("svg")
+                                .attr("width", width + margin.left + margin.right)
+                                .attr("height", height + margin.top + margin.bottom)
+                            .append("g")
+                                .attr("transform", 
+                                      "translate(" + margin.left + "," + margin.top + ")");
+                        
+                        
+
+                        d3.json("{% url 'plot' %}", function(error, data) {
+                        data.forEach(function(d) {
+                            d.date = parseDate(d.exp_date);
+                            d.close = d.strike;
+                            d.color = d.color;
+                        });
+                        
+                        
+                            // Scale the range of the data
+                            x.domain(d3.extent(data, function(d) { return d.date; }));
+                            y.domain([d3.min(data, function(d) { return d.close; })-100, d3.max(data, function(d) { return d.close; })]);
+                        
+                            // Add the valueline path.
+                            // svg.append("path")
+                            //     .attr("class", "line")
+                            //     .attr("d", valueline(data));
+                            
+
+                                svg.selectAll("dot")
+                                .data(data)
+                                .enter().append("circle")
+                                .attr("fill", function(d) { return d.color;})
+                                .attr("r", 4.5)
+                                .attr("cx", function(d) { return x(d.date); })
+                                .attr("cy", function(d) { return y(d.close); });
+                            // Add the X Axis
+                            svg.append("g")
+                                .attr("class", "x axis")
+                                .attr("transform", "translate(0," + height + ")")
+                                .call(xAxis);
+                            // text label for the x axis
+                            svg.append("text")
+                            .attr("transform",
+                            "translate(" + (width/2) + " ," + (height + margin.bottom -5 ) + ")")
+                            .style("text-anchor", "middle")
+                            .text("Expiration Date");
+                                
+                            // Add the Y Axis
+                            svg.append("g")
+                                .attr("class", "y axis")
+                                .call(yAxis);
+
+                            svg.append("text")
+                            .attr("transform", "rotate(-90)")
+                            .attr("y", 0 - margin.left)
+                            .attr("x",0 - (height / 2))
+                            .attr("dy", "1em")
+                            .style("text-anchor", "middle")
+                            .text("Strike Price");      
+
+                            });
+
+                        
+                        </script>
+
+
+        </div>
+
+    </div>
+    </div>
+</div>
+<script>
+
+
+    $('#logout').click(function() {
+        console.log("logout");
+        $.ajax({
+            url: '/logout',
+            success: function(response) {
+
+            }
+            })
+        });
+</script>
+</body>
+</html>

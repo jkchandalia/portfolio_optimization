@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %}
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'portfolio_app/img/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'portfolio_app/img/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'portfolio_app/img/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'portfolio_app/img/site.webmanifest' %}">
+    <title>Optimized Options Portfolio</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/flatly/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'portfolio_app/css/style.css' %}">
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/cyborg/bootstrap.min.css" rel="stylesheet" integrity="sha384-mtS696VnV9qeIoC8w/PrPoRzJ5gwydRVn0oQ9b+RJOPxE1Z1jXuuJcyeNxvNZhdx" crossorigin="anonymous"> -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+      var factor = {{user.margin_available.amount}}/300+.001;
+      $(document).ready(function(){
+          $("#validated-option").hide()
+          $("#validate-text").hide();
+          $("#add").hide();
+          $("#add-btn").hide();
+           $("#remove-option").hide()
+           $('#resizable').height({{user.margin_available.amount}}/factor)
+           $('#update-form').hide()
+           $('#margin-req-amnt').height({{portfolio.margin}}/factor);
+           $('#buffer-num').text({{user.margin_available.amount}} - {{portfolio.margin}} - {{portfolio.liability}});
+           $('#options-liability').height({{portfolio.liability}}/factor);
+           $('#buffer').height(({{user.margin_available.amount}} - {{portfolio.margin}} - {{portfolio.liability}})/factor);
+      });
+  </script>
+  
+</head>
+<body>
+    <div class="container-fluid">
+        <div id="header">
+                <div class=" pull-right ">
+                        <form name="logout" id="logout" action="/logout">
+                            <input type="submit" class="btn btn-secondary" id="logout-button" form="logout" value="Logout">
+                        </form>
+                    </div>
+            <img src="{% static 'portfolio_app/img/OOP-logo.png' %}">
+            <h1 class="display-5">Optimized Options Portfolio {{shock_margin}}</h1>
+
+        </div>
+        <div id="nav-bar">
+            <div class="main-nav">
+            <a href="/portfolio/main">Main Page</a>
+            <a href="/portfolio/options">Update Portfolio</a>
+            <a href="/portfolio/instructions">Trade Summary</a>
+            <a href="/portfolio/analysis">Options Analysis</a>
+             </div> 
+            
+        </div>
+
+        <div class="main">
+            <div class="market-buttons">
+                    <a href="/portfolio/update_market_data" id="update-market-data" class="btn btn-primary">Update Market Data</a>
+                    <button id="simulate-shock" class="btn btn-primary" alt="Revert Market Shock">Simulate Market Shock</button>
+                    <button id="send-sms" class="btn btn-primary">Send SMS</button>
+                    <button id="toggle-summary" class="btn btn-primary" alt="Daily Summary: On">Daily Summary: Off</button>
+            </div>
+        
+            <div class="row">
+                
+                <div class="col-sm" id="option-portfolio">
+                    <h3>Total portfolio:</h3>
+                    <div id="options-heading">
+                        <h4 id="call-put-label">Calls & Puts</h4>
+                        {%for option in portfolio.options%}
+                        <div class="option">{{option.symbol}}</div>
+                        {%endfor%}
+                    </div>
+            
+                </div>
+                <div class="col-sm" id="margin-req">
+                    <h3 >Buffer available:</h3>
+                    <h3 id="buffer-num">{{buffer}}</h3>
+                    <div id="buffer" class="bar-chart"></div>
+                    <div id="margin-req-amnt" class="bar-chart"></div>
+                    <div id="options-liability" class="bar-chart"></div>
+                </div>
+                <div class="col-sm" id="marginable-equity">
+                    <h3>Margin available:</h3>
+                    <h3 id="margin-num">${{user.margin_available.amount}}</h3> <button id="update-button">Update</button>
+                    <form id="update-form" method='POST' action="/portfolio/update_margin_avail">
+                        {%csrf_token%}
+                    <input name="margin_avail" value="{{user.margin_available.amount}}">
+                    <input type="submit" value="Update">
+                    </form>
+                    <div id="resizable" class="bar-chart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+    $('#send-sms').click(function(){
+        $.ajax({
+    // data: JSON.stringify({
+    //     "text": "All instructions"
+    // }),
+    // dataType: 'json',
+    // processData: false,
+    // type: 'POST',
+    url: '/portfolio/send_slack_msg'
+    });
+    });
+
+    
+
+    $("#toggle-summary").click(function(){
+        var temp_txt = $(this).text();
+        var alt_txt = $(this).attr('alt')
+        $(this).text(alt_txt);
+        $(this).attr('alt',temp_txt);
+            $.ajax({
+    
+    url: '/portfolio/toggle_summary'
+    });
+    });
+
+    $('#update-button').click(function(){
+        $('#update-form').show()
+        $('#margin-num').hide()
+        $('#update-button').hide()
+    });
+    
+
+    // $('#update-market-data').click(function(){
+    //     $.ajax({
+    // url: '/portfolio/update_market_data'
+    // });
+    // return true
+    // });
+
+    $('#logout').click(function() {
+        console.log("logout");
+        $.ajax({
+            url: '/logout',
+            success: function(response) {
+
+            }
+            })
+        });
+
+        $("#simulate-shock").click(function(){
+        if ($(this).text()=='Simulate Market Shock'){
+        $.ajax({
+    
+    url: '/portfolio/simulate_shock'
+    });
+    $('#margin-req-amnt').height({{portfolio.margin}}/factor*1.1);
+    $('#resizable').height({{user.margin_available.amount}}/factor*.9);
+    $('#options-liability').height({{portfolio.liability}}/factor*1.1);
+    $('#buffer').height(({{user.margin_available.amount}}*.9 - {{portfolio.margin}} *1.1- {{portfolio.liability}}*1.1)/factor);
+    var temp_txt = $(this).text();
+        var alt_txt = $(this).attr('alt')
+        $(this).text(alt_txt);
+        $(this).attr('alt',temp_txt);
+    $('#buffer-num').text(Math.round(.9*{{user.margin_available.amount}}- 1.1*{{portfolio.margin}}- 1.1*{{portfolio.liability}}))
+    
+    $('#margin-num').text({{user.margin_available.amount}}*.9);}   
+    else {
+        $('#margin-req-amnt').height({{portfolio.margin}}/factor);
+    $('#resizable').height({{user.margin_available.amount}}/factor);
+    $('#options-liability').height({{portfolio.liability}}/factor);
+    $('#buffer').height(({{user.margin_available.amount}} - {{portfolio.margin}}- {{portfolio.liability}})/factor);
+    var temp_txt = $(this).text();
+        var alt_txt = $(this).attr('alt')
+        $(this).text(alt_txt);
+        $(this).attr('alt',temp_txt);
+    $('#buffer-num').text({{user.margin_available.amount}} - {{portfolio.margin}}- {{portfolio.liability}})
+    
+    $('#margin-num').text({{user.margin_available.amount}})}
+});
+    </script>
+</body>
+</html>

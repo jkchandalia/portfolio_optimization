@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Optimized Options Portfolio</title>
+    {% load static %}
+    <link rel="apple-touch-icon" sizes="180x180" href="{% static 'portfolio_app/img/apple-touch-icon.png' %}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'portfolio_app/img/favicon-32x32.png' %}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{% static 'portfolio_app/img/favicon-16x16.png' %}">
+    <link rel="manifest" href="{% static 'portfolio_app/img/site.webmanifest' %}">
+    <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/flatly/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'portfolio_app/css/style.css' %}">
+    <!-- <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.3.1/cyborg/bootstrap.min.css" rel="stylesheet" integrity="sha384-mtS696VnV9qeIoC8w/PrPoRzJ5gwydRVn0oQ9b+RJOPxE1Z1jXuuJcyeNxvNZhdx" crossorigin="anonymous"> -->
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/smoothness/jquery-ui.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+      $(document).ready(function(){
+      });
+  </script>
+  
+</head>
+<body>
+    <div class="container-fluid">
+        <div id="header">
+            <div class=" pull-right ">
+                    <form name="logout" id="logout" action="/logout">
+                        <input type="submit" class="btn btn-secondary" id="logout-button" form="logout" value="Logout">
+                    </form>
+                </div>
+            <img src="{% static 'portfolio_app/img/OOP-logo.png' %}">
+            <h1 class="display-5">Optimized Options Portfolio</h1>
+            
+
+        </div>
+            
+        <div id="nav-bar">
+                <div class="main-nav">
+                <a href="/portfolio/main">Main Page</a>
+                <a href="/portfolio/options">Update Portfolio</a>
+                <a href="/portfolio/instructions">Trade Summary</a>
+                <a href="/portfolio/analysis">Options Analysis</a>
+                 </div> 
+                
+        </div>
+        <div class="main">
+        <div class="row">
+        <div class="col-sm" id="select-option">
+            <h3>Add options to portfolio:</h3>
+            <form name="optiondata" id="option-form" action='/portfolio/validate_option' method='POST'>
+                {%csrf_token%}
+                    <div class="form-item">Equity symbol</div>
+                    <input class="form-item" type="text" name="equity" placeholder="$RUT.X">
+                    <div class="form-item">Strike price:</div>
+                    <input  class="form-item" type="text" name="strike" placeholder="1620">
+                    <div class="form-item">Expiration date:</div>
+                    <input  class="form-item" type="text" name="exp_date" placeholder="2020-02-28">
+                    
+                    <div  class="form-item" >Call/Put:</div>
+                    <div  class="form-item" >
+                        <div class="multi-select"><input type="radio" name="type" value="call"> Call</div>
+                        <div class="multi-select"><input type="radio" name="type" value="put"> Put</div>
+                    </div>
+                    <div class="form_item">
+                    <div  class="form-item">Short/Long:</div>
+                    <div class="multi-select"><input type="checkbox" name="short_long" value="short" checked> Short</div>
+                    </div>
+                    <div class="form_item">
+                    <div class="form-item">Quantity:</div>
+                    <input  class="form-item" type="number" name="quantity" value="1" placeholder="1">
+                    </div>
+                    <input type="submit" class="btn btn-secondary" id="add-option" form="option-form" value="Add Option">
+            </form>
+        </div>
+        <div class="col-sm" id="option-portfolio">
+            <h3>Total portfolio:</h3>
+            <div id="options-heading">
+                <h4>Calls & Puts</h4>
+            </div>
+            {%for option in portfolio.options%}
+            <div class="radio-container">
+            <form action="/portfolio/remove_option" method='POST'>
+                {%csrf_token%}
+                <div class="option-to-remove"><input type="radio" name="to_remove" value="{{option.id}}"> <div class="option">{{option.symbol}}</div></div>
+                
+                {%endfor%}
+                <input type="submit" class="btn btn-warning" id="remove-option" value="Remove Option">
+
+            </form>
+        </div>
+           
+            
+        </div>
+        </div>
+
+    </div>
+    </div>
+    {% if messages %}
+    <ul class="messages">    
+        {% for message in messages %}    
+            <li {% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>    
+        {% endfor %}
+    </ul>
+    {% endif %}
+    <script>
+
+    $('#logout').click(function() {
+        console.log("logout");
+        $.ajax({
+            url: '/logout',
+            success: function(response) {
+
+            }
+            })
+        });
+</script>
+</body>
+</html>

@@ -1,0 +1,9 @@
+.container{
+
+}
+
+#reg, #login{
+    display: inline-block;
+    vertical-align: top;
+    margin: 100px;
+}
